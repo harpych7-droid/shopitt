@@ -6,8 +6,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import Shorts from "./pages/Shorts.tsx";
 import Profile from "./pages/Profile.tsx";
+import UserProfile from "./pages/UserProfile.tsx";
 import Alerts from "./pages/Alerts.tsx";
 import Create from "./pages/Create.tsx";
+import Menu from "./pages/Menu.tsx";
+import Chats from "./pages/Chats.tsx";
+import ChatThread from "./pages/ChatThread.tsx";
+import SellerDashboard from "./pages/SellerDashboard.tsx";
+import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -21,7 +27,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/shorts" element={<Shorts />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/u/:handle" element={<UserProfile />} />
+          <Route path="/account" element={<Profile />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/chats" element={<Chats />} />
+          <Route path="/chats/:handle" element={<ChatThread />} />
+          <Route path="/seller" element={<SellerDashboard />} />
+          <Route path="/p/:id" element={<ProductDetail />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/create" element={<Create />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

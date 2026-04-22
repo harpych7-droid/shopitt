@@ -1,0 +1,242 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowLeft,
+  ChevronDown,
+  User,
+  Pencil,
+  Globe,
+  Wallet,
+  Package,
+  Bookmark,
+  HelpCircle,
+  Phone,
+  Mail,
+  Shield,
+  FileText,
+  Sparkles,
+  Plus,
+  ChevronRight,
+} from "lucide-react";
+import { BottomNav } from "@/components/feed/BottomNav";
+
+type SectionKey = "account" | "shopitt" | "support";
+
+interface Item {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  hint?: string;
+  to?: string;
+  href?: string;
+}
+
+const SECTIONS: { key: SectionKey; title: string; tag: string; items: Item[] }[] = [
+  {
+    key: "account",
+    title: "Account",
+    tag: "Personal",
+    items: [
+      { icon: User, label: "Profile settings", hint: "Privacy, blocked users", to: "/profile" },
+      { icon: Pencil, label: "Edit profile", hint: "Name, bio, avatar", to: "/profile" },
+      { icon: Globe, label: "Language & Country", hint: "All countries supported", to: "#country" },
+    ],
+  },
+  {
+    key: "shopitt",
+    title: "Shopitt",
+    tag: "Commerce",
+    items: [
+      { icon: Wallet, label: "Wallet", hint: "Balance, payouts", to: "/seller" },
+      { icon: Package, label: "Orders", hint: "Track & manage", to: "#orders" },
+      { icon: Bookmark, label: "Saved items", hint: "Your wishlist", to: "/profile" },
+    ],
+  },
+  {
+    key: "support",
+    title: "Support",
+    tag: "Help",
+    items: [
+      { icon: HelpCircle, label: "Help Center", hint: "FAQs & guides", to: "#help" },
+      { icon: Phone, label: "Call AETHØNN Inc.", hint: "0573105096", href: "tel:0573105096" },
+      { icon: Mail, label: "Email support", hint: "shopitt54@gmail.com", href: "mailto:shopitt54@gmail.com" },
+      { icon: Shield, label: "Privacy Policy", to: "#privacy" },
+      { icon: FileText, label: "Terms of Service", to: "#terms" },
+    ],
+  },
+];
+
+const Menu = () => {
+  const [open, setOpen] = useState<Record<SectionKey, boolean>>({
+    account: true,
+    shopitt: false,
+    support: false,
+  });
+
+  useEffect(() => {
+    document.title = "Menu — Shopitt";
+  }, []);
+
+  const toggle = (k: SectionKey) => setOpen((s) => ({ ...s, [k]: !s[k] }));
+
+  return (
+    <main className="relative min-h-[100dvh] bg-background overflow-hidden">
+      {/* Ambient gradient backdrop (feels like feed visible behind glass) */}
+      <div className="pointer-events-none fixed inset-0 -z-0">
+        <div className="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-pink/30 blur-[120px]" />
+        <div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-brand-purple/30 blur-[120px]" />
+        <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-brand-pink/20 blur-[120px]" />
+      </div>
+
+      <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-xl border-b border-border/40">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+          <Link to="/" aria-label="Back" className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-base font-bold">Menu</h1>
+          <span className="h-9 w-9" />
+        </div>
+      </header>
+
+      <div className="relative max-w-md mx-auto px-4 pt-4 pb-32 space-y-4">
+        {/* Profile glance card */}
+        <Link
+          to="/profile"
+          className="block glass rounded-3xl p-4 active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <span className="relative h-14 w-14 shrink-0">
+              <span className="absolute -inset-0.5 rounded-full gradient-brand" />
+              <span className="relative h-full w-full rounded-full bg-background p-[2px] block">
+                <span className="block h-full w-full rounded-full gradient-brand flex items-center justify-center text-base font-black text-white">
+                  Y
+                </span>
+              </span>
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-extrabold text-foreground truncate">@you_shopitt</p>
+              <p className="text-xs text-muted-foreground">Tap to view your profile</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </div>
+        </Link>
+
+        {SECTIONS.map((section) => {
+          const isOpen = open[section.key];
+          return (
+            <div
+              key={section.key}
+              className="glass rounded-3xl overflow-hidden border border-white/10"
+            >
+              <button
+                onClick={() => toggle(section.key)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4"
+                aria-expanded={isOpen}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-[10px] uppercase tracking-[0.18em] font-bold text-brand-pink">
+                    {section.tag}
+                  </span>
+                  <span className="text-base font-extrabold text-foreground">{section.title}</span>
+                </div>
+                <motion.span
+                  animate={{ rotate: isOpen ? 180 : 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-7 w-7 rounded-full bg-white/5 flex items-center justify-center"
+                >
+                  <ChevronDown className="h-4 w-4 text-foreground" />
+                </motion.span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <ul className="px-3 pb-3 space-y-1.5">
+                      {section.items.map((item) => {
+                        const content = (
+                          <div className="flex items-center gap-3 rounded-2xl px-3 py-3 hover:bg-white/5 active:bg-white/10 transition-colors">
+                            <span className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                              <item.icon className="h-[18px] w-[18px] text-foreground" />
+                            </span>
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-sm font-semibold text-foreground">
+                                {item.label}
+                              </span>
+                              {item.hint && (
+                                <span className="block text-[11px] text-muted-foreground truncate">
+                                  {item.hint}
+                                </span>
+                              )}
+                            </span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        );
+                        return (
+                          <li key={item.label}>
+                            {item.href ? (
+                              <a href={item.href}>{content}</a>
+                            ) : (
+                              <Link to={item.to ?? "#"}>{content}</Link>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    {/* Guided action so a section is never visually empty */}
+                    <div className="px-5 pb-5">
+                      <div className="rounded-2xl border border-dashed border-white/15 p-3 flex items-center gap-3">
+                        <span className="h-9 w-9 rounded-xl gradient-brand shadow-brand flex items-center justify-center shrink-0">
+                          <Sparkles className="h-4 w-4 text-white" />
+                        </span>
+                        <p className="flex-1 text-[12px] text-foreground/85 leading-snug">
+                          {section.key === "account"
+                            ? "Complete your profile to unlock seller verification."
+                            : section.key === "shopitt"
+                            ? "Add a payout method to start receiving orders."
+                            : "Need help fast? Tap call to reach AETHØNN support."}
+                        </p>
+                        <Link
+                          to={section.key === "support" ? "#help" : section.key === "shopitt" ? "/seller" : "/profile"}
+                          className="rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-[11px] font-bold"
+                        >
+                          Go
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+
+        {/* Footer */}
+        <div className="pt-4 text-center text-[11px] text-muted-foreground">
+          <p>Shopitt by <span className="font-bold text-foreground">AETHØNN Inc.</span></p>
+          <p>v1.0 · Made for the culture</p>
+        </div>
+
+        {/* Quick CTA so the page never feels static */}
+        <Link
+          to="/create"
+          className="flex items-center justify-center gap-2 rounded-full gradient-brand py-3 text-sm font-bold text-white shadow-brand active:scale-95 transition-transform"
+        >
+          <Plus className="h-4 w-4" />
+          Create a new drop
+        </Link>
+      </div>
+
+      <BottomNav />
+    </main>
+  );
+};
+
+export default Menu;
