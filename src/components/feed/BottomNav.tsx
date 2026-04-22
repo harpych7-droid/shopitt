@@ -1,20 +1,26 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, PlayCircle, Bell, User, Plus } from "lucide-react";
+import { Home, PlayCircle, Package, User, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 const items = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/shorts", label: "Shorts", icon: PlayCircle, end: false },
   { to: "/create", label: "", icon: Plus, end: false, primary: true },
-  { to: "/alerts", label: "Alerts", icon: Bell, end: false, badge: 3 },
+  { to: "/orders", label: "Orders", icon: Package, end: false, badge: 2 },
   { to: "/profile", label: "Profile", icon: User, end: false },
 ];
 
-export const BottomNav = () => {
+interface BottomNavProps {
+  hidden?: boolean;
+}
+
+export const BottomNav = ({ hidden = false }: BottomNavProps) => {
   const { pathname } = useLocation();
-  // Hide on shorts deep interaction? Always visible per spec
   return (
-    <nav
+    <motion.nav
+      initial={false}
+      animate={{ y: hidden ? 110 : 0, opacity: hidden ? 0 : 1 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/60 safe-bottom"
       aria-label="Primary"
     >
@@ -75,6 +81,6 @@ export const BottomNav = () => {
           );
         })}
       </ul>
-    </nav>
+    </motion.nav>
   );
 };

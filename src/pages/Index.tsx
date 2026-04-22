@@ -99,7 +99,7 @@ const Index = () => {
       </div>
 
       <FloatingBag onClick={() => setBagOpen(true)} bottomOffset={84} side="left" />
-      <BottomNav />
+      <BottomNav hidden={navHidden} />
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} action={authAction} />
       <BagSheet open={bagOpen} onClose={() => setBagOpen(false)} />

@@ -25,6 +25,10 @@ export type FeedItem = {
   caption: string;
   hashtags: string[];
   comments: number;
+  /** Drop type — products are bought, services are booked. */
+  kind?: "product" | "service";
+  /** Logistics scope (used in Orders + Checkout UI). */
+  deliveryType?: "international" | "country" | "local";
 };
 
 export const FEED: FeedItem[] = [
@@ -48,6 +52,8 @@ export const FEED: FeedItem[] = [
     caption: "Vintage accessories 💎 Curated for the culture #streetstyle",
     hashtags: ["fashion", "shopzambia", "shopitt", "lusaka"],
     comments: 896,
+    kind: "product",
+    deliveryType: "country",
   },
   {
     id: "p2",
@@ -89,6 +95,8 @@ export const FEED: FeedItem[] = [
     caption: "The glow you've been waiting for ✨ Limited stock",
     hashtags: ["beauty", "skincare", "glow"],
     comments: 78,
+    kind: "service",
+    deliveryType: "local",
   },
   {
     id: "p4",
@@ -129,6 +137,8 @@ export const FEED: FeedItem[] = [
     caption: "Hand-crafted heritage. 2 pieces left in this drop.",
     hashtags: ["luxury", "bag", "heritage"],
     comments: 312,
+    kind: "product",
+    deliveryType: "international",
   },
   {
     id: "p6",

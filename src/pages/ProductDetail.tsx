@@ -15,11 +15,19 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  CalendarCheck,
+  Globe,
 } from "lucide-react";
 import { FEED } from "@/data/feed";
 import { useShopitt, shopitt } from "@/store/useShopittStore";
 import { AuthModal } from "@/components/feed/AuthModal";
 import { BagSheet } from "@/components/feed/BagSheet";
+
+const DELIVERY_META = {
+  international: { icon: Globe, label: "International delivery" },
+  country: { icon: Truck, label: "Country-wide delivery" },
+  local: { icon: MapPin, label: "Local delivery" },
+} as const;
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -208,12 +216,28 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {product.freeDelivery && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-success/10 border border-success/20 px-3 py-2">
-              <Truck className="h-4 w-4 text-success" />
-              <span className="text-xs font-semibold text-success">Free Delivery — ships in {product.shipsIn}</span>
-            </div>
-          )}
+          {(() => {
+            const dKey = product.deliveryType ?? "country";
+            const D = DELIVERY_META[dKey];
+            return product.freeDelivery ? (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-success/10 border border-success/20 px-3 py-2">
+                <Truck className="h-4 w-4 text-success shrink-0" />
+                <span className="text-xs font-semibold text-success flex-1">
+                  Free Delivery — ships in {product.shipsIn}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold text-success">
+                  <D.icon className="h-3 w-3" /> {D.label}
+                </span>
+              </div>
+            ) : (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-muted/40 border border-border/60 px-3 py-2">
+                <D.icon className="h-4 w-4 text-foreground/80 shrink-0" />
+                <span className="text-xs font-semibold text-foreground/85 flex-1">
+                  {D.label} — ships in {product.shipsIn}
+                </span>
+              </div>
+            );
+          })()}
         </section>
 
         {/* SELLER */}
@@ -303,24 +327,35 @@ const ProductDetail = () => {
         </section>
       </div>
 
-      {/* STICKY ACTIONS */}
+      {/* STICKY ACTIONS — dynamic Buy / Book based on item kind */}
       <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/60 safe-bottom">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-2">
-          <button
-            onClick={handleAddBag}
-            className="flex-1 h-12 rounded-full bg-card border border-border/60 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          >
-            <ShoppingBag className="h-4 w-4" />
-            Add to Bag
-          </button>
-          <motion.button
-            onClick={handleBuy}
-            whileTap={{ scale: 0.95 }}
-            className="flex-[1.4] h-12 rounded-full gradient-brand text-sm font-extrabold text-white shadow-brand flex items-center justify-center gap-2 animate-glow-pulse"
-          >
-            Buy Now
-            <ShoppingBag className="h-4 w-4" />
-          </motion.button>
+          {(() => {
+            const isService = product.kind === "service";
+            const secondaryLabel = isService ? "Save for later" : "Add to Bag";
+            const primaryLabel = isService ? "Book Now" : "Buy Now";
+            const PrimaryIcon = isService ? CalendarCheck : ShoppingBag;
+            const SecondaryIcon = isService ? Bookmark : ShoppingBag;
+            return (
+              <>
+                <button
+                  onClick={isService ? handleSave : handleAddBag}
+                  className="flex-1 h-12 rounded-full bg-card border border-border/60 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                >
+                  <SecondaryIcon className="h-4 w-4" />
+                  {secondaryLabel}
+                </button>
+                <motion.button
+                  onClick={handleBuy}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex-[1.4] h-12 rounded-full gradient-brand text-sm font-extrabold text-white shadow-brand flex items-center justify-center gap-2 animate-glow-pulse"
+                >
+                  {primaryLabel}
+                  <PrimaryIcon className="h-4 w-4" />
+                </motion.button>
+              </>
+            );
+          })()}
         </div>
       </div>
 
