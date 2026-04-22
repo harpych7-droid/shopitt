@@ -19,6 +19,12 @@ export type FeedItem = {
   freeDelivery: boolean;
   category: "For You" | "Fashion" | "Beauty" | "Tech" | "Footwear";
   likes: number;
+  sold: number;
+  location: string;
+  shipsIn: string;
+  caption: string;
+  hashtags: string[];
+  comments: number;
 };
 
 export const FEED: FeedItem[] = [
