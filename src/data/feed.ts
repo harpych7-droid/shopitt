@@ -19,6 +19,12 @@ export type FeedItem = {
   freeDelivery: boolean;
   category: "For You" | "Fashion" | "Beauty" | "Tech" | "Footwear";
   likes: number;
+  sold: number;
+  location: string;
+  shipsIn: string;
+  caption: string;
+  hashtags: string[];
+  comments: number;
 };
 
 export const FEED: FeedItem[] = [
@@ -36,6 +42,12 @@ export const FEED: FeedItem[] = [
     freeDelivery: true,
     category: "Fashion",
     likes: 12480,
+    sold: 214,
+    location: "Lusaka",
+    shipsIn: "24h",
+    caption: "Vintage accessories 💎 Curated for the culture #streetstyle",
+    hashtags: ["fashion", "shopzambia", "shopitt", "lusaka"],
+    comments: 896,
   },
   {
     id: "p2",
@@ -50,6 +62,12 @@ export const FEED: FeedItem[] = [
     freeDelivery: true,
     category: "Footwear",
     likes: 28910,
+    sold: 489,
+    location: "Lusaka",
+    shipsIn: "24h",
+    caption: "Fresh drop just landed 🟠 These go hard with anything",
+    hashtags: ["sneakers", "jordan", "shopzambia", "kicks"],
+    comments: 234,
   },
   {
     id: "p3",
@@ -65,6 +83,12 @@ export const FEED: FeedItem[] = [
     freeDelivery: true,
     category: "Beauty",
     likes: 5230,
+    sold: 132,
+    location: "Ndola",
+    shipsIn: "48h",
+    caption: "The glow you've been waiting for ✨ Limited stock",
+    hashtags: ["beauty", "skincare", "glow"],
+    comments: 78,
   },
   {
     id: "p4",
@@ -79,6 +103,12 @@ export const FEED: FeedItem[] = [
     freeDelivery: false,
     category: "Beauty",
     likes: 9420,
+    sold: 67,
+    location: "Lusaka",
+    shipsIn: "24h",
+    caption: "Cult favourite is back. Don't sleep.",
+    hashtags: ["fragrance", "cult", "shopitt"],
+    comments: 145,
   },
   {
     id: "p5",
@@ -93,6 +123,12 @@ export const FEED: FeedItem[] = [
     freeDelivery: true,
     category: "Fashion",
     likes: 18760,
+    sold: 58,
+    location: "Kitwe",
+    shipsIn: "72h",
+    caption: "Hand-crafted heritage. 2 pieces left in this drop.",
+    hashtags: ["luxury", "bag", "heritage"],
+    comments: 312,
   },
   {
     id: "p6",
@@ -108,7 +144,23 @@ export const FEED: FeedItem[] = [
     freeDelivery: true,
     category: "Tech",
     likes: 7180,
+    sold: 198,
+    location: "Lusaka",
+    shipsIn: "24h",
+    caption: "Studio-grade ANC. 40h battery. Built for the commute.",
+    hashtags: ["tech", "audio", "headphones"],
+    comments: 98,
   },
 ];
 
-export const CATEGORIES = ["For You", "Fashion", "Beauty", "Tech", "Footwear"] as const;
+export const CATEGORIES = ["All", "Fashion", "Sneakers", "Beauty", "Luxury", "Tech", "Vintage"] as const;
+
+export const CATEGORY_MAP: Record<string, FeedItem["category"][] | null> = {
+  All: null,
+  Fashion: ["Fashion"],
+  Sneakers: ["Footwear"],
+  Beauty: ["Beauty"],
+  Luxury: ["Fashion"],
+  Tech: ["Tech"],
+  Vintage: ["Fashion"],
+};
