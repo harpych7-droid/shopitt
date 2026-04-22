@@ -21,16 +21,16 @@ export const TopNav = ({ hidden }: TopNavProps) => {
           </span>
         </Link>
         <div className="flex items-center gap-1">
-          <button className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Search">
+          <Link to="/chats" className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Chats">
             <Search className="h-5 w-5 text-foreground" />
-          </button>
+          </Link>
           <Link to="/alerts" className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center relative" aria-label="Notifications">
             <Bell className="h-5 w-5 text-foreground" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-pink animate-pulse-soft" />
           </Link>
-          <button className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Menu">
+          <Link to="/menu" className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Menu">
             <Menu className="h-5 w-5 text-foreground" />
-          </button>
+          </Link>
         </div>
       </div>
     </motion.header>
