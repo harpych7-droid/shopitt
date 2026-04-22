@@ -15,11 +15,19 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  CalendarCheck,
+  Globe,
 } from "lucide-react";
 import { FEED } from "@/data/feed";
 import { useShopitt, shopitt } from "@/store/useShopittStore";
 import { AuthModal } from "@/components/feed/AuthModal";
 import { BagSheet } from "@/components/feed/BagSheet";
+
+const DELIVERY_META = {
+  international: { icon: Globe, label: "International delivery" },
+  country: { icon: Truck, label: "Country-wide delivery" },
+  local: { icon: MapPin, label: "Local delivery" },
+} as const;
 
 const ProductDetail = () => {
   const { id } = useParams();
