@@ -15,13 +15,14 @@ import {
   Mail,
   Shield,
   FileText,
+  ShieldAlert,
   Sparkles,
   Plus,
   ChevronRight,
 } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
 
-type SectionKey = "account" | "shopitt" | "support";
+type SectionKey = "account" | "shopitt" | "legal";
 
 interface Item {
   icon: React.ComponentType<{ className?: string }>;
@@ -31,38 +32,42 @@ interface Item {
   href?: string;
 }
 
-const SECTIONS: { key: SectionKey; title: string; tag: string; items: Item[] }[] = [
+const SECTIONS: { key: SectionKey; title: string; tag: string; items: Item[]; cta: { copy: string; to: string } }[] = [
   {
     key: "account",
     title: "Account",
     tag: "Personal",
     items: [
-      { icon: User, label: "Profile settings", hint: "Privacy, blocked users", to: "/profile" },
-      { icon: Pencil, label: "Edit profile", hint: "Name, bio, avatar", to: "/profile" },
-      { icon: Globe, label: "Language & Country", hint: "All countries supported", to: "#country" },
+      { icon: User, label: "Profile", hint: "View your social profile", to: "/profile" },
+      { icon: Pencil, label: "Edit profile", hint: "Name, bio, avatar", to: "/edit-profile" },
+      { icon: Globe, label: "Country & Region", hint: "All countries supported", to: "/country" },
     ],
+    cta: { copy: "Complete your profile to unlock seller verification.", to: "/edit-profile" },
   },
   {
     key: "shopitt",
     title: "Shopitt",
     tag: "Commerce",
     items: [
-      { icon: Wallet, label: "Wallet", hint: "Balance, payouts", to: "/seller" },
-      { icon: Package, label: "Orders", hint: "Track & manage", to: "#orders" },
-      { icon: Bookmark, label: "Saved items", hint: "Your wishlist", to: "/profile" },
+      { icon: Wallet, label: "Wallet", hint: "Balance, payouts, withdraw", to: "/wallet" },
+      { icon: Package, label: "Orders", hint: "Track & manage", to: "/orders" },
+      { icon: Bookmark, label: "Saved items", hint: "Your wishlist", to: "/saved" },
     ],
+    cta: { copy: "Add a payout method to start receiving orders.", to: "/wallet" },
   },
   {
-    key: "support",
-    title: "Support",
+    key: "legal",
+    title: "Legal & Support",
     tag: "Help",
     items: [
-      { icon: HelpCircle, label: "Help Center", hint: "FAQs & guides", to: "#help" },
+      { icon: HelpCircle, label: "Help Center", hint: "FAQs & guides", to: "/contact" },
       { icon: Phone, label: "Call AETHØNN Inc.", hint: "0573105096", href: "tel:0573105096" },
       { icon: Mail, label: "Email support", hint: "shopitt54@gmail.com", href: "mailto:shopitt54@gmail.com" },
-      { icon: Shield, label: "Privacy Policy", to: "#privacy" },
-      { icon: FileText, label: "Terms of Service", to: "#terms" },
+      { icon: FileText, label: "Terms of Service", to: "/terms" },
+      { icon: Shield, label: "Privacy Policy", to: "/privacy" },
+      { icon: ShieldAlert, label: "Safety Center", to: "/safety" },
     ],
+    cta: { copy: "Need help fast? Tap call to reach AETHØNN support.", to: "/contact" },
   },
 ];
 
@@ -70,7 +75,7 @@ const Menu = () => {
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({
     account: true,
     shopitt: false,
-    support: false,
+    legal: false,
   });
 
   useEffect(() => {
@@ -81,7 +86,7 @@ const Menu = () => {
 
   return (
     <main className="relative min-h-[100dvh] bg-background overflow-hidden">
-      {/* Ambient gradient backdrop (feels like feed visible behind glass) */}
+      {/* Ambient gradient backdrop */}
       <div className="pointer-events-none fixed inset-0 -z-0">
         <div className="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-pink/30 blur-[120px]" />
         <div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-brand-purple/30 blur-[120px]" />
@@ -190,21 +195,16 @@ const Menu = () => {
                       })}
                     </ul>
 
-                    {/* Guided action so a section is never visually empty */}
                     <div className="px-5 pb-5">
                       <div className="rounded-2xl border border-dashed border-white/15 p-3 flex items-center gap-3">
                         <span className="h-9 w-9 rounded-xl gradient-brand shadow-brand flex items-center justify-center shrink-0">
                           <Sparkles className="h-4 w-4 text-white" />
                         </span>
                         <p className="flex-1 text-[12px] text-foreground/85 leading-snug">
-                          {section.key === "account"
-                            ? "Complete your profile to unlock seller verification."
-                            : section.key === "shopitt"
-                            ? "Add a payout method to start receiving orders."
-                            : "Need help fast? Tap call to reach AETHØNN support."}
+                          {section.cta.copy}
                         </p>
                         <Link
-                          to={section.key === "support" ? "#help" : section.key === "shopitt" ? "/seller" : "/profile"}
+                          to={section.cta.to}
                           className="rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-[11px] font-bold"
                         >
                           Go
@@ -224,7 +224,6 @@ const Menu = () => {
           <p>v1.0 · Made for the culture</p>
         </div>
 
-        {/* Quick CTA so the page never feels static */}
         <Link
           to="/create"
           className="flex items-center justify-center gap-2 rounded-full gradient-brand py-3 text-sm font-bold text-white shadow-brand active:scale-95 transition-transform"
