@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Heart, Bookmark, MessageCircle, Send, Truck, MoreHorizontal, MapPin, BadgeCheck, ShoppingBag } from "lucide-react";
+import { Heart, Bookmark, MessageCircle, Send, Truck, MoreHorizontal, MapPin, BadgeCheck, ShoppingBag, CalendarCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { FeedItem } from "@/data/feed";
 import { useShopitt, shopitt } from "@/store/useShopittStore";
@@ -150,8 +150,12 @@ export const HomeFeedCard = ({ item, index, onAuthRequired }: HomeFeedCardProps)
               whileTap={{ scale: 0.94 }}
               className="shrink-0 rounded-full gradient-brand px-5 py-3 text-sm font-bold text-white shadow-brand flex items-center gap-1.5"
             >
-              <span>Buy Now</span>
-              <ShoppingBag className="h-4 w-4" />
+              <span>{item.kind === "service" ? "Book Now" : "Buy Now"}</span>
+              {item.kind === "service" ? (
+                <CalendarCheck className="h-4 w-4" />
+              ) : (
+                <ShoppingBag className="h-4 w-4" />
+              )}
             </motion.button>
           </div>
         </div>
