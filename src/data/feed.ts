@@ -25,6 +25,10 @@ export type FeedItem = {
   caption: string;
   hashtags: string[];
   comments: number;
+  /** Drop type — products are bought, services are booked. */
+  kind?: "product" | "service";
+  /** Logistics scope (used in Orders + Checkout UI). */
+  deliveryType?: "international" | "country" | "local";
 };
 
 export const FEED: FeedItem[] = [
