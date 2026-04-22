@@ -132,14 +132,21 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Stock urgency */}
+          {/* Stock urgency — matches feed overlay pulsing dot style */}
           {product.stockLeft <= 10 && (
-            <div className="absolute top-16 right-3">
-              <div className="rounded-full bg-warning px-2.5 py-1 flex items-center gap-1 shadow-soft animate-pulse-soft">
-                <span className="h-1.5 w-1.5 rounded-full bg-black" />
-                <span className="text-[11px] font-bold text-black">Only {product.stockLeft} left</span>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute top-16 right-3 z-10"
+            >
+              <div className="rounded-full bg-warning px-2.5 py-1 flex items-center gap-1 shadow-soft">
+                <span className="h-1.5 w-1.5 rounded-full bg-black animate-pulse-soft" />
+                <span className="text-[11px] font-bold text-black">
+                  Only {product.stockLeft} left
+                </span>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Arrows (desktop friendly) */}
