@@ -215,7 +215,7 @@ export const HomeFeedCard = ({ item, index, onAuthRequired }: HomeFeedCardProps)
             {item.hashtags.map((h) => (
               <span
                 key={h}
-                className="text-xs font-medium text-brand-purple bg-brand-purple/10 rounded-full px-2.5 py-1"
+                className="text-xs font-medium text-brand-pink bg-brand-pink/10 rounded-full px-2.5 py-1"
               >
                 #{h}
               </span>
