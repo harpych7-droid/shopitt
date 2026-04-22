@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Search, Bell, User } from "lucide-react";
+import { Search, Bell, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TopNavProps {
   hidden: boolean;
@@ -9,29 +10,26 @@ export const TopNav = ({ hidden }: TopNavProps) => {
   return (
     <motion.header
       initial={false}
-      animate={{ y: hidden ? -80 : 0, opacity: hidden ? 0 : 1 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed top-0 inset-x-0 z-40 px-4 pt-3"
+      animate={{ y: hidden ? -90 : 0, opacity: hidden ? 0 : 1 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed top-0 inset-x-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40"
     >
-      <div className="glass-dark rounded-full flex items-center justify-between px-4 py-2.5 mx-auto max-w-md">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full gradient-brand flex items-center justify-center text-[10px] font-black text-white">
-            S
-          </div>
-          <span className="font-bold tracking-tight text-base">
-            shop<span className="text-gradient-brand">itt</span>
+      <div className="flex items-center justify-between px-4 py-2.5 max-w-md mx-auto">
+        <Link to="/" aria-label="Shopitt home" className="inline-flex">
+          <span className="rounded-full gradient-brand px-4 py-1.5 text-base font-extrabold text-white tracking-tight shadow-brand">
+            Shopitt
           </span>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
-          <button className="h-9 w-9 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center" aria-label="Search">
-            <Search className="h-[18px] w-[18px]" />
+          <button className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Search">
+            <Search className="h-5 w-5 text-foreground" />
           </button>
-          <button className="h-9 w-9 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center relative" aria-label="Notifications">
-            <Bell className="h-[18px] w-[18px]" />
-            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-brand-pink animate-pulse-soft" />
-          </button>
-          <button className="h-9 w-9 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center" aria-label="Profile">
-            <User className="h-[18px] w-[18px]" />
+          <Link to="/alerts" className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center relative" aria-label="Notifications">
+            <Bell className="h-5 w-5 text-foreground" />
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-pink animate-pulse-soft" />
+          </Link>
+          <button className="h-9 w-9 rounded-full hover:bg-muted/50 transition-colors flex items-center justify-center" aria-label="Menu">
+            <Menu className="h-5 w-5 text-foreground" />
           </button>
         </div>
       </div>
