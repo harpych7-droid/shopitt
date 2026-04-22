@@ -327,24 +327,35 @@ const ProductDetail = () => {
         </section>
       </div>
 
-      {/* STICKY ACTIONS */}
+      {/* STICKY ACTIONS — dynamic Buy / Book based on item kind */}
       <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/60 safe-bottom">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-2">
-          <button
-            onClick={handleAddBag}
-            className="flex-1 h-12 rounded-full bg-card border border-border/60 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          >
-            <ShoppingBag className="h-4 w-4" />
-            Add to Bag
-          </button>
-          <motion.button
-            onClick={handleBuy}
-            whileTap={{ scale: 0.95 }}
-            className="flex-[1.4] h-12 rounded-full gradient-brand text-sm font-extrabold text-white shadow-brand flex items-center justify-center gap-2 animate-glow-pulse"
-          >
-            Buy Now
-            <ShoppingBag className="h-4 w-4" />
-          </motion.button>
+          {(() => {
+            const isService = product.kind === "service";
+            const secondaryLabel = isService ? "Save for later" : "Add to Bag";
+            const primaryLabel = isService ? "Book Now" : "Buy Now";
+            const PrimaryIcon = isService ? CalendarCheck : ShoppingBag;
+            const SecondaryIcon = isService ? Bookmark : ShoppingBag;
+            return (
+              <>
+                <button
+                  onClick={isService ? handleSave : handleAddBag}
+                  className="flex-1 h-12 rounded-full bg-card border border-border/60 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                >
+                  <SecondaryIcon className="h-4 w-4" />
+                  {secondaryLabel}
+                </button>
+                <motion.button
+                  onClick={handleBuy}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex-[1.4] h-12 rounded-full gradient-brand text-sm font-extrabold text-white shadow-brand flex items-center justify-center gap-2 animate-glow-pulse"
+                >
+                  {primaryLabel}
+                  <PrimaryIcon className="h-4 w-4" />
+                </motion.button>
+              </>
+            );
+          })()}
         </div>
       </div>
 
