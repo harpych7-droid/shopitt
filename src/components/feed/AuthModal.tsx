@@ -1,6 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { signInWithGoogle } from "@/hooks/useAuth";
 import { shopitt } from "@/store/useShopittStore";
+import { toast } from "sonner";
 
 interface AuthModalProps {
   open: boolean;
@@ -16,21 +19,24 @@ const COPY: Record<string, string> = {
 };
 
 export const AuthModal = ({ open, onClose, action }: AuthModalProps) => {
-  const handleGoogle = () => {
-    // Placeholder — wire to real auth later
-    shopitt.setAuthed(true);
-    const pending = shopitt.get().pendingAction;
-    if (pending && pending.itemId) {
-      const { FEED } = require("@/data/feed");
-      const item = FEED.find((f: any) => f.id === pending.itemId);
-      if (item) {
-        if (pending.type === "like") shopitt.toggleLike(item.id);
-        if (pending.type === "save") shopitt.toggleSave(item.id);
-        if (pending.type === "buy") shopitt.addToBag(item);
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogle = async () => {
+    try {
+      setLoading(true);
+      // Persist pending action so it survives the OAuth redirect roundtrip
+      const pending = shopitt.get().pendingAction;
+      if (pending) {
+        sessionStorage.setItem("shopitt:pendingAction", JSON.stringify(pending));
       }
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+      // The browser will redirect to Google; nothing else to do here.
+    } catch (err: any) {
+      console.error("Google sign-in failed", err);
+      toast.error(err?.message ?? "Sign-in failed. Please try again.");
+      setLoading(false);
     }
-    shopitt.setPending(null);
-    onClose();
   };
 
   return (
@@ -83,10 +89,15 @@ export const AuthModal = ({ open, onClose, action }: AuthModalProps) => {
 
               <button
                 onClick={handleGoogle}
-                className="w-full h-12 rounded-full bg-white text-black font-semibold text-sm flex items-center justify-center gap-2.5 hover:bg-white/90 active:scale-[0.98] transition-all"
+                disabled={loading}
+                className="w-full h-12 rounded-full bg-white text-black font-semibold text-sm flex items-center justify-center gap-2.5 hover:bg-white/90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <GoogleIcon />
-                Continue with Google
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                {loading ? "Redirecting…" : "Continue with Google"}
               </button>
 
               <p className="text-[11px] text-white/40 text-center mt-4 leading-relaxed">
