@@ -27,6 +27,7 @@ import Privacy from "./pages/Privacy.tsx";
 import Safety from "./pages/Safety.tsx";
 import Contact from "./pages/Contact.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { AuthBootstrap } from "./components/auth/AuthBootstrap";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthBootstrap />
         <Routes>
           {/* Core feed */}
           <Route path="/" element={<Index />} />
