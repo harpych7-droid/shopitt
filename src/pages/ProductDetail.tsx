@@ -133,14 +133,16 @@ const ProductDetail = () => {
             ))}
           </div>
 
-          {/* Drop title — top center glassmorphism */}
-          <div className="pointer-events-none absolute top-16 inset-x-0 flex justify-center">
-            <div className="glass-dark rounded-full px-4 py-1.5">
-              <span className="text-xs font-bold tracking-wide text-white">{product.drop}</span>
+          {/* Drop title — top-left, glassmorphism, never blocks subject */}
+          <div className="pointer-events-none absolute top-16 left-3 z-10 max-w-[55%]">
+            <div className="glass-dark rounded-full px-3 py-1.5 backdrop-blur-xl bg-black/30 border border-white/10">
+              <span className="text-xs font-bold tracking-wide text-white/90 truncate block">
+                {product.drop}
+              </span>
             </div>
           </div>
 
-          {/* Stock urgency — matches feed overlay pulsing dot style */}
+          {/* Stock urgency — top-right with safe spacing */}
           {product.stockLeft <= 10 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}

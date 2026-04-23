@@ -73,28 +73,28 @@ export const FeedCard = ({ item, index, onAuthRequired }: FeedCardProps) => {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] overlay-bottom" />
       </div>
 
-      {/* DROP TITLE — TOP */}
+      {/* DROP TITLE — TOP-SAFE area, glassmorphism, never blocks subject */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute top-[140px] left-1/2 -translate-x-1/2 z-10"
+        className="absolute top-[max(env(safe-area-inset-top,0px)+12px,16px)] left-4 z-10 max-w-[60%]"
       >
-        <div className="glass rounded-full px-4 py-1.5 flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-brand-pink" />
-          <span className="text-xs font-semibold tracking-wide text-white">
+        <div className="glass-dark rounded-full px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-xl bg-black/30 border border-white/10">
+          <Sparkles className="h-3.5 w-3.5 text-brand-pink shrink-0" />
+          <span className="text-xs font-semibold tracking-wide text-white/90 truncate">
             {item.drop}
           </span>
         </div>
       </motion.div>
 
-      {/* STOCK PILL — TOP RIGHT */}
+      {/* STOCK PILL — TOP RIGHT, safe spacing */}
       {item.stockLeft <= 10 && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="absolute top-[140px] right-4 z-10"
+          className="absolute top-[max(env(safe-area-inset-top,0px)+12px,16px)] right-4 z-10"
         >
           <div className="rounded-full bg-warning/95 px-3 py-1 flex items-center gap-1.5 shadow-soft animate-pulse-soft">
             <span className="h-1.5 w-1.5 rounded-full bg-white" />
