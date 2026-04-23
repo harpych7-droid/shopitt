@@ -52,8 +52,8 @@ const Shorts = () => {
         ))}
       </div>
 
-      {/* Bag positioned LEFT to avoid right-side action stack; lifted above bottom nav */}
-      <FloatingBag onClick={() => setBagOpen(true)} bottomOffset={88} side="left" />
+      {/* Bag in bottom-right safe zone, BELOW the right-side action stack (which sits at bottom-32) */}
+      <FloatingBag onClick={() => setBagOpen(true)} bottomOffset={88} side="right" />
 
       <BottomNav />
 
