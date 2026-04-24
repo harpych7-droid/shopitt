@@ -24,6 +24,7 @@ const ACTIVITY = [
 ];
 
 const Dashboard = () => {
+  const { profile } = useIdentity();
   const scrollRef = useRef<HTMLDivElement>(null);
   const hidden = useScrollDirection({ target: scrollRef.current, offset: 60 });
   const suggested = FEED.slice(0, 4);
