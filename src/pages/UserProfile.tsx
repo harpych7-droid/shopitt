@@ -26,20 +26,17 @@ type Tab = "posts" | "shorts" | "saved";
 type ProfileRow = {
   id: string;
   username: string | null;
-  display_name: string | null;
   avatar_url: string | null;
-  bio: string | null;
-  location: string | null;
+  country: string | null;
 };
 
 type PostRow = {
   id: string;
   user_id: string;
-  image: string | null;
+  media_url: string | null;
   title: string | null;
+  description: string | null;
   price: number | null;
-  currency: string | null;
-  type?: string | null;
   created_at: string;
 };
 
