@@ -15,6 +15,7 @@ import { TopNav } from "@/components/feed/TopNav";
 import { BottomNav } from "@/components/feed/BottomNav";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { FEED } from "@/data/feed";
+import { useIdentity } from "@/hooks/useIdentity";
 
 const ACTIVITY = [
   { icon: ShoppingBag, title: "Order shipped", desc: "Halo Pro ANC Headphones", time: "2h", to: "/orders/o-1024" },
