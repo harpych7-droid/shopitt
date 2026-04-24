@@ -98,7 +98,7 @@ const UserProfile = () => {
         // fetch by id
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url, bio, location")
+          .select("id, username, avatar_url, country")
           .eq("id", authedUserId)
           .maybeSingle();
 
@@ -109,8 +109,6 @@ const UserProfile = () => {
         if (!targetProfile) {
           const { data: authData } = await supabase.auth.getUser();
           const meta = (authData.user?.user_metadata ?? {}) as Record<string, any>;
-          const fallbackName =
-            meta.full_name || meta.name || authData.user?.email?.split("@")[0] || "shopper";
           const fallbackHandle = (authData.user?.email?.split("@")[0] ?? `user_${authedUserId.slice(0, 6)}`)
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, "_");
@@ -118,25 +116,24 @@ const UserProfile = () => {
           const insertPayload = {
             id: authedUserId,
             username: fallbackHandle,
-            display_name: fallbackName,
             avatar_url: meta.avatar_url ?? meta.picture ?? null,
           };
 
           const { data: created, error: createErr } = await supabase
             .from("profiles")
             .insert(insertPayload)
-            .select("id, username, display_name, avatar_url, bio, location")
+            .select("id, username, avatar_url, country")
             .maybeSingle();
 
           if (createErr) {
             console.error("Profile auto-create failed", createErr);
           }
-          targetProfile = (created as ProfileRow | null) ?? (insertPayload as ProfileRow);
+          targetProfile = (created as ProfileRow | null) ?? ({ ...insertPayload, country: null } as ProfileRow);
         }
       } else if (handle) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url, bio, location")
+          .select("id, username, avatar_url, country")
           .eq("username", handle)
           .maybeSingle();
         if (error) throw error;
@@ -160,20 +157,20 @@ const UserProfile = () => {
       const [postsRes, followersRes, followingRes, isFollowingRes] = await Promise.all([
         supabase
           .from("posts")
-          .select("id, user_id, image, title, price, currency, type, created_at")
+          .select("id, user_id, media_url, title, description, price, created_at")
           .eq("user_id", targetProfile.id)
           .order("created_at", { ascending: false }),
         supabase
-          .from("follows")
+          .from("followers")
           .select("*", { count: "exact", head: true })
           .eq("following_id", targetProfile.id),
         supabase
-          .from("follows")
+          .from("followers")
           .select("*", { count: "exact", head: true })
           .eq("follower_id", targetProfile.id),
         authedUserId && authedUserId !== targetProfile.id
           ? supabase
-              .from("follows")
+              .from("followers")
               .select("follower_id", { count: "exact", head: true })
               .eq("follower_id", authedUserId)
               .eq("following_id", targetProfile.id)
