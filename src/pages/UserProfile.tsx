@@ -1,45 +1,268 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, BadgeCheck, MoreHorizontal, MessageCircle, UserPlus, Grid3x3, PlayCircle, Bookmark, Sparkles, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  BadgeCheck,
+  MoreHorizontal,
+  MessageCircle,
+  UserPlus,
+  Grid3x3,
+  PlayCircle,
+  Bookmark,
+  Sparkles,
+  Plus,
+  LogIn,
+} from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
-import { FEED } from "@/data/feed";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { signInWithGoogle } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 type Tab = "posts" | "shorts" | "saved";
 
+type ProfileRow = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+};
+
+type PostRow = {
+  id: string;
+  user_id: string;
+  image: string | null;
+  title: string | null;
+  price: number | null;
+  currency: string | null;
+  type?: string | null;
+  created_at: string;
+};
+
 const UserProfile = () => {
   const { handle } = useParams();
-  const username = handle ?? "you_shopitt";
-  const isSelf = !handle;
+  const isSelfRoute = !handle;
+
   const [tab, setTab] = useState<Tab>("posts");
-  const [following, setFollowing] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authedUserId, setAuthedUserId] = useState<string | null>(null);
 
-  // Map: if viewing a brand handle, show their items. Otherwise (self), show empty to demo CTA.
-  const posts = useMemo(() => {
-    if (isSelf) return [];
-    return FEED.filter((f) => f.brandHandle === handle);
-  }, [handle, isSelf]);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [posts, setPosts] = useState<PostRow[]>([]);
+  const [followers, setFollowers] = useState(0);
+  const [following, setFollowing] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  const shorts = useMemo(() => (isSelf ? [] : posts.slice(0, 2)), [isSelf, posts]);
-  const saved = useMemo(() => FEED.slice(0, isSelf ? 0 : 3), [isSelf]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  const displayName = isSelf ? "Your Profile" : posts[0]?.brand ?? username;
-  const location = isSelf ? "Lusaka, Zambia" : posts[0]?.location ?? "Lusaka";
-  const stats = {
-    posts: isSelf ? 0 : posts.length || 24,
-    followers: isSelf ? 12 : 18420,
-    following: isSelf ? 38 : 312,
-  };
+  // 1) Resolve auth user
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active) return;
+      const uid = data.user?.id ?? null;
+      setAuthedUserId(uid);
+      console.log("AUTH USER:", data.user);
+      setAuthLoading(false);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthedUserId(session?.user?.id ?? null);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  // 2) Resolve target profile -> posts -> stats
+  const loadProfile = useCallback(async () => {
+    if (authLoading) return;
+
+    // Self route requires auth
+    if (isSelfRoute && !authedUserId) {
+      setDataLoading(false);
+      return;
+    }
+
+    setDataLoading(true);
+    setNotFound(false);
+
+    try {
+      let targetProfile: ProfileRow | null = null;
+
+      if (isSelfRoute && authedUserId) {
+        // fetch by id
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, username, display_name, avatar_url, bio, location")
+          .eq("id", authedUserId)
+          .maybeSingle();
+
+        if (error) throw error;
+        targetProfile = data as ProfileRow | null;
+
+        // Auto-create if missing
+        if (!targetProfile) {
+          const { data: authData } = await supabase.auth.getUser();
+          const meta = (authData.user?.user_metadata ?? {}) as Record<string, any>;
+          const fallbackName =
+            meta.full_name || meta.name || authData.user?.email?.split("@")[0] || "shopper";
+          const fallbackHandle = (authData.user?.email?.split("@")[0] ?? `user_${authedUserId.slice(0, 6)}`)
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, "_");
+
+          const insertPayload = {
+            id: authedUserId,
+            username: fallbackHandle,
+            display_name: fallbackName,
+            avatar_url: meta.avatar_url ?? meta.picture ?? null,
+          };
+
+          const { data: created, error: createErr } = await supabase
+            .from("profiles")
+            .insert(insertPayload)
+            .select("id, username, display_name, avatar_url, bio, location")
+            .maybeSingle();
+
+          if (createErr) {
+            console.error("Profile auto-create failed", createErr);
+          }
+          targetProfile = (created as ProfileRow | null) ?? (insertPayload as ProfileRow);
+        }
+      } else if (handle) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, username, display_name, avatar_url, bio, location")
+          .eq("username", handle)
+          .maybeSingle();
+        if (error) throw error;
+        targetProfile = data as ProfileRow | null;
+      }
+
+      console.log("PROFILE:", targetProfile);
+
+      if (!targetProfile) {
+        setNotFound(true);
+        setProfile(null);
+        setPosts([]);
+        setFollowers(0);
+        setFollowing(0);
+        return;
+      }
+
+      setProfile(targetProfile);
+
+      // Parallel fetch: posts + follower count + following count + amIFollowing
+      const [postsRes, followersRes, followingRes, isFollowingRes] = await Promise.all([
+        supabase
+          .from("posts")
+          .select("id, user_id, image, title, price, currency, type, created_at")
+          .eq("user_id", targetProfile.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", targetProfile.id),
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("follower_id", targetProfile.id),
+        authedUserId && authedUserId !== targetProfile.id
+          ? supabase
+              .from("follows")
+              .select("follower_id", { count: "exact", head: true })
+              .eq("follower_id", authedUserId)
+              .eq("following_id", targetProfile.id)
+          : Promise.resolve({ count: 0, error: null } as any),
+      ]);
+
+      if (postsRes.error) console.error("POSTS error:", postsRes.error);
+      console.log("POSTS:", postsRes.data);
+
+      setPosts((postsRes.data as PostRow[] | null) ?? []);
+      setFollowers(followersRes.count ?? 0);
+      setFollowing(followingRes.count ?? 0);
+      setIsFollowing((isFollowingRes.count ?? 0) > 0);
+    } catch (err: any) {
+      console.error("Profile load failed", err);
+      toast.error(err?.message ?? "Failed to load profile");
+    } finally {
+      setDataLoading(false);
+    }
+  }, [authLoading, authedUserId, handle, isSelfRoute]);
 
   useEffect(() => {
-    document.title = `@${username} — Shopitt`;
-  }, [username]);
+    loadProfile();
+  }, [loadProfile]);
 
-  const tabItems = tab === "posts" ? posts : tab === "shorts" ? shorts : saved;
+  useEffect(() => {
+    document.title = profile?.username
+      ? `@${profile.username} — Shopitt`
+      : "Profile — Shopitt";
+  }, [profile?.username]);
+
+  const handleFollowToggle = async () => {
+    if (!authedUserId || !profile || authedUserId === profile.id) return;
+    const next = !isFollowing;
+    setIsFollowing(next);
+    setFollowers((c) => c + (next ? 1 : -1));
+
+    if (next) {
+      const { error } = await supabase
+        .from("follows")
+        .insert({ follower_id: authedUserId, following_id: profile.id });
+      if (error) {
+        setIsFollowing(false);
+        setFollowers((c) => c - 1);
+        toast.error("Could not follow");
+      }
+    } else {
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", authedUserId)
+        .eq("following_id", profile.id);
+      if (error) {
+        setIsFollowing(true);
+        setFollowers((c) => c + 1);
+        toast.error("Could not unfollow");
+      }
+    }
+  };
+
+  // ---------- RENDER STATES ----------
+
+  // Unauthed self profile -> sign-in CTA
+  if (!authLoading && isSelfRoute && !authedUserId) {
+    return <SignInCTA />;
+  }
+
+  // Loading skeleton
+  if (authLoading || dataLoading) {
+    return <ProfileSkeleton />;
+  }
+
+  if (notFound || !profile) {
+    return <NotFoundState handle={handle} />;
+  }
+
+  const isSelf = authedUserId === profile.id;
+  const displayName = profile.display_name || profile.username || "Shopitt user";
+  const username = profile.username || "shopper";
+  const location = profile.location || "—";
+
+  const shorts = posts.filter((p) => (p.type ?? "").toLowerCase() === "short");
+  const tabItems = tab === "posts" ? posts : tab === "shorts" ? shorts : [];
 
   return (
     <main className="min-h-[100dvh] bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <Link to="/" aria-label="Back" className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center">
@@ -65,18 +288,25 @@ const UserProfile = () => {
             >
               <span className="absolute -inset-1 rounded-full gradient-brand animate-glow-pulse" />
               <span className="relative block h-20 w-20 rounded-full bg-background p-[3px]">
-                <span className="block h-full w-full rounded-full gradient-brand flex items-center justify-center text-2xl font-black text-white">
-                  {displayName[0].toUpperCase()}
-                </span>
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={displayName}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="block h-full w-full rounded-full gradient-brand flex items-center justify-center text-2xl font-black text-white">
+                    {displayName[0].toUpperCase()}
+                  </span>
+                )}
               </span>
             </button>
 
-            {/* Stats */}
             <div className="flex-1 grid grid-cols-3 gap-2 pt-1">
               {[
-                { label: "Posts", value: stats.posts },
-                { label: "Followers", value: stats.followers },
-                { label: "Following", value: stats.following },
+                { label: "Posts", value: posts.length },
+                { label: "Followers", value: followers },
+                { label: "Following", value: following },
               ].map((s) => (
                 <button key={s.label} className="text-center active:scale-95 transition-transform">
                   <div className="text-lg font-extrabold text-foreground tabular-nums">
@@ -88,26 +318,24 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Name + bio */}
           <div className="mt-4">
             <h2 className="text-base font-bold text-foreground">{displayName}</h2>
             <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 text-brand-pink" />
               <span>{location}</span>
             </div>
-            <p className="mt-2 text-sm text-foreground/85 leading-snug">
-              {isSelf
-                ? "Curating drops you crave 🔥 Tap edit to add your bio."
-                : "Curated drops · Free delivery in 24h · DM for collabs ✨"}
-            </p>
+            {profile.bio && (
+              <p className="mt-2 text-sm text-foreground/85 leading-snug whitespace-pre-line">
+                {profile.bio}
+              </p>
+            )}
           </div>
 
-          {/* Action row */}
           <div className="mt-4 flex items-center gap-2">
             {isSelf ? (
               <>
                 <Link
-                  to="/menu"
+                  to="/edit-profile"
                   className="flex-1 h-10 rounded-full bg-card border border-border/60 text-sm font-bold flex items-center justify-center hover:bg-muted/40 transition-colors"
                 >
                   Edit profile
@@ -122,15 +350,15 @@ const UserProfile = () => {
             ) : (
               <>
                 <button
-                  onClick={() => setFollowing((v) => !v)}
+                  onClick={handleFollowToggle}
                   className={`flex-1 h-10 rounded-full text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
-                    following
+                    isFollowing
                       ? "bg-card border border-border/60 text-foreground"
                       : "gradient-brand text-white shadow-brand"
                   }`}
                 >
                   <UserPlus className="h-4 w-4" />
-                  {following ? "Following" : "Follow"}
+                  {isFollowing ? "Following" : "Follow"}
                 </button>
                 <Link
                   to={`/chats/${username}`}
@@ -186,16 +414,20 @@ const UserProfile = () => {
                   to={`/p/${p.id}`}
                   className="relative aspect-square overflow-hidden bg-muted active:opacity-80 transition-opacity"
                 >
-                  <img src={p.image} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
+                  {p.image && (
+                    <img src={p.image} alt={p.title ?? ""} loading="lazy" className="h-full w-full object-cover" />
+                  )}
                   {tab === "shorts" && (
                     <span className="absolute top-1.5 right-1.5">
                       <PlayCircle className="h-4 w-4 text-white drop-shadow" />
                     </span>
                   )}
-                  <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
-                    {p.currency}
-                    {p.price}
-                  </span>
+                  {p.price != null && (
+                    <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
+                      {p.currency ?? ""}
+                      {p.price}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
@@ -208,17 +440,126 @@ const UserProfile = () => {
   );
 };
 
+// ---------- Sub-components ----------
+
+const SignInCTA = () => {
+  const [loading, setLoading] = useState(false);
+  const onSignIn = async () => {
+    try {
+      setLoading(true);
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sign-in failed");
+      setLoading(false);
+    }
+  };
+  return (
+    <main className="min-h-[100dvh] bg-background flex flex-col">
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+          <Link to="/" aria-label="Back" className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-base font-bold">Profile</h1>
+          <span className="h-9 w-9" />
+        </div>
+      </header>
+      <div className="flex-1 max-w-md w-full mx-auto px-6 flex items-center justify-center">
+        <div className="glass rounded-3xl p-7 text-center shadow-soft w-full">
+          <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl gradient-brand shadow-brand mb-4">
+            <Sparkles className="h-7 w-7 text-white" />
+          </span>
+          <h3 className="text-xl font-extrabold tracking-tight">Sign in to Shopitt</h3>
+          <p className="mt-1.5 text-sm text-muted-foreground leading-snug">
+            Your profile, drops and saved items live here. Sign in to continue.
+          </p>
+          <button
+            onClick={onSignIn}
+            disabled={loading}
+            className="mt-5 w-full h-12 rounded-full gradient-brand text-white font-bold inline-flex items-center justify-center gap-2 shadow-brand active:scale-[0.98] transition-transform disabled:opacity-70"
+          >
+            <LogIn className="h-4 w-4" />
+            {loading ? "Redirecting…" : "Continue with Google"}
+          </button>
+        </div>
+      </div>
+      <BottomNav />
+    </main>
+  );
+};
+
+const ProfileSkeleton = () => (
+  <main className="min-h-[100dvh] bg-background">
+    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40">
+      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <Skeleton className="h-9 w-9 rounded-full" />
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-9 w-9 rounded-full" />
+      </div>
+    </header>
+    <div className="max-w-md mx-auto px-4 pb-32 pt-6">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-20 w-20 rounded-full" />
+        <div className="flex-1 grid grid-cols-3 gap-2 pt-2">
+          <Skeleton className="h-10" />
+          <Skeleton className="h-10" />
+          <Skeleton className="h-10" />
+        </div>
+      </div>
+      <Skeleton className="mt-4 h-4 w-40" />
+      <Skeleton className="mt-2 h-3 w-24" />
+      <Skeleton className="mt-3 h-12 w-full rounded-2xl" />
+      <div className="mt-4 flex gap-2">
+        <Skeleton className="h-10 flex-1 rounded-full" />
+        <Skeleton className="h-10 flex-1 rounded-full" />
+      </div>
+      <div className="mt-8 grid grid-cols-3 gap-1">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <Skeleton key={i} className="aspect-square rounded-md" />
+        ))}
+      </div>
+    </div>
+    <BottomNav />
+  </main>
+);
+
+const NotFoundState = ({ handle }: { handle?: string }) => (
+  <main className="min-h-[100dvh] bg-background flex flex-col">
+    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40">
+      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <Link to="/" aria-label="Back" className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-base font-bold">Profile</h1>
+        <span className="h-9 w-9" />
+      </div>
+    </header>
+    <div className="flex-1 flex items-center justify-center px-6 text-center">
+      <div>
+        <h2 className="text-lg font-extrabold">Profile not found</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {handle ? `We couldn't find @${handle}.` : "This profile doesn't exist."}
+        </p>
+        <Link to="/" className="mt-4 inline-flex rounded-full gradient-brand text-white text-sm font-bold px-5 py-2.5 shadow-brand">
+          Back to feed
+        </Link>
+      </div>
+    </div>
+    <BottomNav />
+  </main>
+);
+
 const EmptyState = ({ tab, isSelf }: { tab: Tab; isSelf: boolean }) => {
   const copy =
     tab === "posts"
-      ? { title: "Start your first drop 🔥", desc: "Post a product or short and watch buyers come to you.", cta: "Create post", to: "/create" }
+      ? { title: "No drops yet 🔥", desc: "Post a product or short and watch buyers come to you.", cta: "Create your first drop", to: "/create" }
       : tab === "shorts"
       ? { title: "Your stage awaits 🎬", desc: "Post a 9:16 short — Shorts convert 3x faster.", cta: "Record a short", to: "/create" }
       : { title: "Save your obsessions ✨", desc: "Tap the bookmark on any drop to keep it here.", cta: "Discover feed", to: "/" };
 
   return (
     <div className="pt-6">
-      {/* Animated placeholder grid */}
       <div className="grid grid-cols-3 gap-1">
         {Array.from({ length: 9 }).map((_, i) => (
           <motion.div
@@ -231,7 +572,6 @@ const EmptyState = ({ tab, isSelf }: { tab: Tab; isSelf: boolean }) => {
         ))}
       </div>
 
-      {/* CTA card overlapping */}
       <div className="-mt-24 relative z-10 px-4">
         <div className="glass rounded-3xl p-6 text-center shadow-soft">
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl gradient-brand shadow-brand mb-3">
@@ -241,13 +581,15 @@ const EmptyState = ({ tab, isSelf }: { tab: Tab; isSelf: boolean }) => {
           <p className="mt-1 text-sm text-muted-foreground leading-snug">
             {isSelf ? copy.desc : "This profile hasn't posted here yet."}
           </p>
-          <Link
-            to={copy.to}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2.5 text-sm font-bold text-white shadow-brand active:scale-95 transition-transform"
-          >
-            <Plus className="h-4 w-4" />
-            {copy.cta}
-          </Link>
+          {isSelf && (
+            <Link
+              to={copy.to}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2.5 text-sm font-bold text-white shadow-brand active:scale-95 transition-transform"
+            >
+              <Plus className="h-4 w-4" />
+              {copy.cta}
+            </Link>
+          )}
         </div>
       </div>
     </div>
