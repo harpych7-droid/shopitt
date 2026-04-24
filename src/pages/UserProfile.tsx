@@ -44,10 +44,10 @@ type PostRow = {
 const UserProfile = () => {
   const { handle } = useParams();
   const isSelfRoute = !handle;
+  const { user: authUser, profile: globalProfile, loading: identityLoading } = useIdentity();
+  const authedUserId = authUser?.id ?? null;
 
   const [tab, setTab] = useState<Tab>("posts");
-  const [authLoading, setAuthLoading] = useState(true);
-  const [authedUserId, setAuthedUserId] = useState<string | null>(null);
 
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [posts, setPosts] = useState<PostRow[]>([]);
@@ -58,26 +58,14 @@ const UserProfile = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // 1) Resolve auth user
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!active) return;
-      const uid = data.user?.id ?? null;
-      setAuthedUserId(uid);
-      console.log("AUTH USER:", data.user);
-      setAuthLoading(false);
-    })();
+  const authLoading = identityLoading;
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthedUserId(session?.user?.id ?? null);
-    });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
+  // Hydrate self-profile straight from global store
+  useEffect(() => {
+    if (isSelfRoute && globalProfile) {
+      setProfile(globalProfile as ProfileRow);
+    }
+  }, [isSelfRoute, globalProfile]);
 
   // 2) Resolve target profile -> posts -> stats
   const loadProfile = useCallback(async () => {
