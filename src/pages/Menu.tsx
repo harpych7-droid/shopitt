@@ -21,6 +21,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
+import { useIdentity } from "@/hooks/useIdentity";
+import { IdentityAvatar } from "@/components/identity/IdentityAvatar";
 
 type SectionKey = "account" | "shopitt" | "legal";
 
