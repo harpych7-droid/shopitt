@@ -210,7 +210,7 @@ const UserProfile = () => {
 
     if (next) {
       const { error } = await supabase
-        .from("follows")
+        .from("followers")
         .insert({ follower_id: authedUserId, following_id: profile.id });
       if (error) {
         setIsFollowing(false);
@@ -219,7 +219,7 @@ const UserProfile = () => {
       }
     } else {
       const { error } = await supabase
-        .from("follows")
+        .from("followers")
         .delete()
         .eq("follower_id", authedUserId)
         .eq("following_id", profile.id);
