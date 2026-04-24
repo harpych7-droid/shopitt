@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
 import { FEED } from "@/data/feed";
+import { useIdentity } from "@/hooks/useIdentity";
 
 const SellerDashboard = () => {
+  const { profile } = useIdentity();
   const [hasProducts, setHasProducts] = useState(true);
   // Showcase data (production would pull from API)
   const products = hasProducts ? FEED.slice(0, 4) : [];
