@@ -43,7 +43,9 @@ const Dashboard = () => {
           {/* Welcome */}
           <section className="pt-2">
             <p className="text-xs uppercase tracking-[0.18em] font-bold text-brand-pink">Welcome back</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight">Hey, @you_shopitt 👋</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              Hey, @{profile?.username ?? "shopper"} 👋
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">Here's what's happening in your Shopitt today.</p>
           </section>
 
