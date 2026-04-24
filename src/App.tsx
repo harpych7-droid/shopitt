@@ -28,6 +28,8 @@ import Safety from "./pages/Safety.tsx";
 import Contact from "./pages/Contact.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthBootstrap } from "./components/auth/AuthBootstrap";
+import { IdentityProvider } from "./hooks/useIdentity";
+import { IdentityGate } from "./components/auth/IdentityGate";
 
 const queryClient = new QueryClient();
 
@@ -37,45 +39,49 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthBootstrap />
-        <Routes>
-          {/* Core feed */}
-          <Route path="/" element={<Index />} />
-          <Route path="/shorts" element={<Shorts />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/create" element={<Create />} />
+        <IdentityProvider>
+          <AuthBootstrap />
+          <IdentityGate>
+            <Routes>
+              {/* Core feed */}
+              <Route path="/" element={<Index />} />
+              <Route path="/shorts" element={<Shorts />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/create" element={<Create />} />
 
-          {/* Dashboard (overview) — separate from Wallet */}
-          <Route path="/dashboard" element={<Dashboard />} />
+              {/* Dashboard (overview) — separate from Wallet */}
+              <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Commerce */}
-          <Route path="/wallet" element={<Wallet />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/orders/:id" element={<OrderTracking />} />
-          <Route path="/saved" element={<Saved />} />
-          <Route path="/seller" element={<SellerDashboard />} />
-          <Route path="/p/:id" element={<ProductDetail />} />
+              {/* Commerce */}
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:id" element={<OrderTracking />} />
+              <Route path="/saved" element={<Saved />} />
+              <Route path="/seller" element={<SellerDashboard />} />
+              <Route path="/p/:id" element={<ProductDetail />} />
 
-          {/* Social */}
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/u/:handle" element={<UserProfile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/country" element={<Country />} />
-          <Route path="/account" element={<Profile />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/chats" element={<Chats />} />
-          <Route path="/chats/:handle" element={<ChatThread />} />
-          <Route path="/alerts" element={<Alerts />} />
+              {/* Social */}
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/u/:handle" element={<UserProfile />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/country" element={<Country />} />
+              <Route path="/account" element={<Profile />} />
+              <Route path="/menu" element={<Menu />} />
+              <Route path="/chats" element={<Chats />} />
+              <Route path="/chats/:handle" element={<ChatThread />} />
+              <Route path="/alerts" element={<Alerts />} />
 
-          {/* Legal */}
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/safety" element={<Safety />} />
-          <Route path="/contact" element={<Contact />} />
+              {/* Legal */}
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/safety" element={<Safety />} />
+              <Route path="/contact" element={<Contact />} />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </IdentityGate>
+        </IdentityProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

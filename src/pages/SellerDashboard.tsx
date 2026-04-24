@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
 import { FEED } from "@/data/feed";
+import { useIdentity } from "@/hooks/useIdentity";
 
 const SellerDashboard = () => {
+  const { profile } = useIdentity();
   const [hasProducts, setHasProducts] = useState(true);
   // Showcase data (production would pull from API)
   const products = hasProducts ? FEED.slice(0, 4) : [];
@@ -51,15 +53,28 @@ const SellerDashboard = () => {
         <section className="relative overflow-hidden rounded-3xl gradient-brand p-5 shadow-brand">
           <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-center gap-3">
-            <span className="h-12 w-12 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-base font-black text-white">
-              Y
-            </span>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.username ?? "you"}
+                referrerPolicy="no-referrer"
+                className="h-12 w-12 rounded-full object-cover ring-2 ring-white/30"
+              />
+            ) : (
+              <span className="h-12 w-12 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-base font-black text-white">
+                {(profile?.username?.[0] ?? "S").toUpperCase()}
+              </span>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-extrabold text-white truncate">@you_shopitt</p>
+                <p className="text-sm font-extrabold text-white truncate">
+                  @{profile?.username ?? "shopper"}
+                </p>
                 <BadgeCheck className="h-4 w-4 text-white fill-white/30" />
               </div>
-              <p className="text-[11px] text-white/80">Verified Seller · Lusaka</p>
+              <p className="text-[11px] text-white/80">
+                Verified Seller{profile?.country ? ` · ${profile.country}` : ""}
+              </p>
             </div>
             <button
               onClick={() => setHasProducts((v) => !v)}

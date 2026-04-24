@@ -15,6 +15,7 @@ import { TopNav } from "@/components/feed/TopNav";
 import { BottomNav } from "@/components/feed/BottomNav";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { FEED } from "@/data/feed";
+import { useIdentity } from "@/hooks/useIdentity";
 
 const ACTIVITY = [
   { icon: ShoppingBag, title: "Order shipped", desc: "Halo Pro ANC Headphones", time: "2h", to: "/orders/o-1024" },
@@ -23,6 +24,7 @@ const ACTIVITY = [
 ];
 
 const Dashboard = () => {
+  const { profile } = useIdentity();
   const scrollRef = useRef<HTMLDivElement>(null);
   const hidden = useScrollDirection({ target: scrollRef.current, offset: 60 });
   const suggested = FEED.slice(0, 4);
@@ -41,7 +43,9 @@ const Dashboard = () => {
           {/* Welcome */}
           <section className="pt-2">
             <p className="text-xs uppercase tracking-[0.18em] font-bold text-brand-pink">Welcome back</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight">Hey, @you_shopitt 👋</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              Hey, @{profile?.username ?? "shopper"} 👋
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">Here's what's happening in your Shopitt today.</p>
           </section>
 

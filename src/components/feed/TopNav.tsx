@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
 import { Search, MessageCircle, Menu as MenuIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIdentity } from "@/hooks/useIdentity";
+import { IdentityAvatar } from "@/components/identity/IdentityAvatar";
 
 interface TopNavProps {
   hidden: boolean;
 }
 
 export const TopNav = ({ hidden }: TopNavProps) => {
+  const { profile, isAuthed } = useIdentity();
+
   return (
     <motion.header
       initial={false}
@@ -22,8 +26,8 @@ export const TopNav = ({ hidden }: TopNavProps) => {
           </span>
         </Link>
 
-        {/* RIGHT — Search, Chat, Menu (evenly spaced) */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* RIGHT — Search, Chat, Menu, Avatar */}
+        <div className="flex items-center gap-1 shrink-0">
           <Link
             to="/search"
             aria-label="Search Shopitt"
@@ -45,8 +49,18 @@ export const TopNav = ({ hidden }: TopNavProps) => {
           >
             <MenuIcon className="h-5 w-5 text-foreground" />
           </Link>
+          {isAuthed && (
+            <Link
+              to="/profile"
+              aria-label={profile?.username ? `@${profile.username}` : "Your profile"}
+              className="ml-1 active:scale-95 transition-transform"
+            >
+              <IdentityAvatar profile={profile} size={32} ring />
+            </Link>
+          )}
         </div>
       </div>
     </motion.header>
   );
 };
+

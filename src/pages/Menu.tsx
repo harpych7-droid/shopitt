@@ -21,6 +21,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
+import { useIdentity } from "@/hooks/useIdentity";
+import { IdentityAvatar } from "@/components/identity/IdentityAvatar";
 
 type SectionKey = "account" | "shopitt" | "legal";
 
@@ -72,6 +74,7 @@ const SECTIONS: { key: SectionKey; title: string; tag: string; items: Item[]; ct
 ];
 
 const Menu = () => {
+  const { profile, isAuthed } = useIdentity();
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({
     account: true,
     shopitt: false,
@@ -110,17 +113,14 @@ const Menu = () => {
           className="block glass rounded-3xl p-4 active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center gap-3">
-            <span className="relative h-14 w-14 shrink-0">
-              <span className="absolute -inset-0.5 rounded-full gradient-brand" />
-              <span className="relative h-full w-full rounded-full bg-background p-[2px] block">
-                <span className="block h-full w-full rounded-full gradient-brand flex items-center justify-center text-base font-black text-white">
-                  Y
-                </span>
-              </span>
-            </span>
+            <IdentityAvatar profile={profile} size={56} className="text-base" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-extrabold text-foreground truncate">@you_shopitt</p>
-              <p className="text-xs text-muted-foreground">Tap to view your profile</p>
+              <p className="text-sm font-extrabold text-foreground truncate">
+                {isAuthed && profile?.username ? `@${profile.username}` : "Sign in to Shopitt"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isAuthed ? "Tap to view your profile" : "Continue with Google to unlock"}
+              </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </div>
