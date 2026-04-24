@@ -404,8 +404,8 @@ const UserProfile = () => {
                   to={`/p/${p.id}`}
                   className="relative aspect-square overflow-hidden bg-muted active:opacity-80 transition-opacity"
                 >
-                  {p.image && (
-                    <img src={p.image} alt={p.title ?? ""} loading="lazy" className="h-full w-full object-cover" />
+                  {p.media_url && (
+                    <img src={p.media_url} alt={p.title ?? ""} loading="lazy" className="h-full w-full object-cover" />
                   )}
                   {tab === "shorts" && (
                     <span className="absolute top-1.5 right-1.5">
@@ -414,7 +414,6 @@ const UserProfile = () => {
                   )}
                   {p.price != null && (
                     <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
-                      {p.currency ?? ""}
                       {p.price}
                     </span>
                   )}
