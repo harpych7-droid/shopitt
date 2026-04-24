@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Check } from "lucide-react";
 import { BottomNav } from "@/components/feed/BottomNav";
 import { toast } from "sonner";
+import { useIdentity } from "@/hooks/useIdentity";
+import { supabase } from "@/integrations/supabase/client";
+import { IdentityAvatar } from "@/components/identity/IdentityAvatar";
 
 const EditProfile = () => {
+  const navigate = useNavigate();
+  const { profile, user, isAuthed, refresh, setProfile } = useIdentity();
+
   const [form, setForm] = useState({
-    name: "Your Name",
-    handle: "you_shopitt",
-    bio: "Curating drops you crave 🔥",
-    location: "Lusaka, Zambia",
-    website: "",
+    username: "",
+    country: "",
+    avatar_url: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -18,22 +22,84 @@ const EditProfile = () => {
     document.title = "Edit profile — Shopitt";
   }, []);
 
+  // Hydrate form from global identity when it lands
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        username: profile.username ?? "",
+        country: profile.country ?? "",
+        avatar_url: profile.avatar_url ?? "",
+      });
+    }
+  }, [profile]);
+
+  if (!isAuthed || !user) {
+    return (
+      <main className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-lg font-extrabold">Sign in required</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          You need to sign in before editing your profile.
+        </p>
+        <Link
+          to="/profile"
+          className="mt-4 inline-flex rounded-full gradient-brand text-white text-sm font-bold px-5 py-2.5 shadow-brand"
+        >
+          Go to profile
+        </Link>
+      </main>
+    );
+  }
+
   const update = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const onSave = () => {
+  const onSave = async () => {
+    if (!user) return;
+    const cleanHandle = form.username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
+    if (cleanHandle.length < 2) {
+      toast.error("Username must be at least 2 characters");
+      return;
+    }
+
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      toast.success("Profile updated");
-    }, 500);
+    const payload = {
+      username: cleanHandle,
+      country: form.country.trim() || null,
+      avatar_url: form.avatar_url.trim() || null,
+    };
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", user.id)
+      .select("id, username, avatar_url, country")
+      .maybeSingle();
+    setSaving(false);
+
+    if (error) {
+      console.error("Save profile failed", error);
+      toast.error(error.message ?? "Could not save profile");
+      return;
+    }
+
+    // Update global state immediately so every surface reflects the change
+    if (data) {
+      setProfile(data);
+    } else {
+      await refresh();
+    }
+    toast.success("Profile updated");
+    navigate("/profile");
   };
 
   return (
     <main className="min-h-[100dvh] bg-background pb-32">
       <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/menu" aria-label="Back" className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center">
+          <Link
+            to="/menu"
+            aria-label="Back"
+            className="h-9 w-9 rounded-full hover:bg-muted/50 flex items-center justify-center"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="text-base font-bold">Edit profile</h1>
@@ -51,62 +117,64 @@ const EditProfile = () => {
       <div className="max-w-md mx-auto px-4 pt-6 space-y-5">
         {/* Avatar */}
         <section className="flex flex-col items-center gap-3">
-          <button className="relative h-24 w-24 rounded-full active:scale-95 transition-transform">
-            <span className="absolute -inset-1 rounded-full gradient-brand" />
-            <span className="relative block h-full w-full rounded-full bg-background p-[3px]">
-              <span className="block h-full w-full rounded-full gradient-brand flex items-center justify-center text-3xl font-black text-white">
-                {form.name[0].toUpperCase()}
-              </span>
-            </span>
+          <div className="relative">
+            <IdentityAvatar
+              profile={{
+                id: user.id,
+                username: form.username || profile?.username || null,
+                avatar_url: form.avatar_url || null,
+                country: form.country || null,
+              }}
+              size={96}
+            />
             <span className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-foreground text-background flex items-center justify-center border-4 border-background">
               <Camera className="h-3.5 w-3.5" />
             </span>
-          </button>
-          <button className="text-xs font-bold text-brand-pink">Change profile photo</button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Paste a public image URL below to change your photo
+          </p>
         </section>
 
-        {/* Form */}
+        {/* Form — only fields that exist on the profiles table */}
         <section className="space-y-3">
-          {[
-            { k: "name" as const, label: "Display name", type: "text" },
-            { k: "handle" as const, label: "Username", type: "text", prefix: "@" },
-            { k: "bio" as const, label: "Bio", type: "textarea" },
-            { k: "location" as const, label: "Location", type: "text" },
-            { k: "website" as const, label: "Website", type: "url", placeholder: "https://" },
-          ].map((field) => (
-            <div key={field.k} className="rounded-2xl bg-card border border-border/60 px-4 py-3">
-              <label className="block text-[10px] uppercase tracking-[0.16em] font-bold text-muted-foreground">
-                {field.label}
-              </label>
-              <div className="flex items-center gap-1 mt-1">
-                {field.prefix && <span className="text-sm font-bold text-muted-foreground">{field.prefix}</span>}
-                {field.type === "textarea" ? (
-                  <textarea
-                    value={form[field.k]}
-                    onChange={(e) => update(field.k, e.target.value)}
-                    rows={3}
-                    className="flex-1 bg-transparent text-sm outline-none resize-none placeholder:text-muted-foreground"
-                  />
-                ) : (
-                  <input
-                    type={field.type}
-                    value={form[field.k]}
-                    placeholder={field.placeholder}
-                    onChange={(e) => update(field.k, e.target.value)}
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                  />
-                )}
-              </div>
-            </div>
-          ))}
+          <Field label="Username" prefix="@">
+            <input
+              type="text"
+              value={form.username}
+              onChange={(e) => update("username", e.target.value)}
+              placeholder="your_handle"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </Field>
+
+          <Field label="Avatar URL">
+            <input
+              type="url"
+              value={form.avatar_url}
+              onChange={(e) => update("avatar_url", e.target.value)}
+              placeholder="https://…"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </Field>
+
+          <Field label="Country">
+            <input
+              type="text"
+              value={form.country}
+              onChange={(e) => update("country", e.target.value)}
+              placeholder="Zambia"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </Field>
         </section>
 
         <Link
           to="/country"
           className="flex items-center justify-between rounded-2xl bg-card border border-border/60 px-4 py-3.5"
         >
-          <span className="text-sm font-semibold">Country</span>
-          <span className="text-sm text-muted-foreground">Zambia →</span>
+          <span className="text-sm font-semibold">Pick from country list</span>
+          <span className="text-sm text-muted-foreground">{form.country || "—"} →</span>
         </Link>
       </div>
 
@@ -114,5 +182,25 @@ const EditProfile = () => {
     </main>
   );
 };
+
+const Field = ({
+  label,
+  prefix,
+  children,
+}: {
+  label: string;
+  prefix?: string;
+  children: React.ReactNode;
+}) => (
+  <div className="rounded-2xl bg-card border border-border/60 px-4 py-3">
+    <label className="block text-[10px] uppercase tracking-[0.16em] font-bold text-muted-foreground">
+      {label}
+    </label>
+    <div className="flex items-center gap-1 mt-1">
+      {prefix && <span className="text-sm font-bold text-muted-foreground">{prefix}</span>}
+      {children}
+    </div>
+  </div>
+);
 
 export default EditProfile;
