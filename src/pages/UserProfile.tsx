@@ -319,11 +319,6 @@ const UserProfile = () => {
               <MapPin className="h-3.5 w-3.5 text-brand-pink" />
               <span>{location}</span>
             </div>
-            {profile.bio && (
-              <p className="mt-2 text-sm text-foreground/85 leading-snug whitespace-pre-line">
-                {profile.bio}
-              </p>
-            )}
           </div>
 
           <div className="mt-4 flex items-center gap-2">
