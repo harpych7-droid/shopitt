@@ -248,11 +248,12 @@ const UserProfile = () => {
   }
 
   const isSelf = authedUserId === profile.id;
-  const displayName = profile.display_name || profile.username || "Shopitt user";
   const username = profile.username || "shopper";
-  const location = profile.location || "—";
+  const displayName = profile.username || "Shopitt user";
+  const location = profile.country || "—";
 
-  const shorts = posts.filter((p) => (p.type ?? "").toLowerCase() === "short");
+  // No 'type' column on posts — Shorts tab stays empty until schema supports it
+  const shorts: PostRow[] = [];
   const tabItems = tab === "posts" ? posts : tab === "shorts" ? shorts : [];
 
   return (
