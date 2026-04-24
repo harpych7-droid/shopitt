@@ -26,20 +26,17 @@ type Tab = "posts" | "shorts" | "saved";
 type ProfileRow = {
   id: string;
   username: string | null;
-  display_name: string | null;
   avatar_url: string | null;
-  bio: string | null;
-  location: string | null;
+  country: string | null;
 };
 
 type PostRow = {
   id: string;
   user_id: string;
-  image: string | null;
+  media_url: string | null;
   title: string | null;
+  description: string | null;
   price: number | null;
-  currency: string | null;
-  type?: string | null;
   created_at: string;
 };
 
@@ -101,7 +98,7 @@ const UserProfile = () => {
         // fetch by id
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url, bio, location")
+          .select("id, username, avatar_url, country")
           .eq("id", authedUserId)
           .maybeSingle();
 
@@ -112,8 +109,6 @@ const UserProfile = () => {
         if (!targetProfile) {
           const { data: authData } = await supabase.auth.getUser();
           const meta = (authData.user?.user_metadata ?? {}) as Record<string, any>;
-          const fallbackName =
-            meta.full_name || meta.name || authData.user?.email?.split("@")[0] || "shopper";
           const fallbackHandle = (authData.user?.email?.split("@")[0] ?? `user_${authedUserId.slice(0, 6)}`)
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, "_");
@@ -121,25 +116,24 @@ const UserProfile = () => {
           const insertPayload = {
             id: authedUserId,
             username: fallbackHandle,
-            display_name: fallbackName,
             avatar_url: meta.avatar_url ?? meta.picture ?? null,
           };
 
           const { data: created, error: createErr } = await supabase
             .from("profiles")
             .insert(insertPayload)
-            .select("id, username, display_name, avatar_url, bio, location")
+            .select("id, username, avatar_url, country")
             .maybeSingle();
 
           if (createErr) {
             console.error("Profile auto-create failed", createErr);
           }
-          targetProfile = (created as ProfileRow | null) ?? (insertPayload as ProfileRow);
+          targetProfile = (created as ProfileRow | null) ?? ({ ...insertPayload, country: null } as ProfileRow);
         }
       } else if (handle) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, display_name, avatar_url, bio, location")
+          .select("id, username, avatar_url, country")
           .eq("username", handle)
           .maybeSingle();
         if (error) throw error;
@@ -163,20 +157,20 @@ const UserProfile = () => {
       const [postsRes, followersRes, followingRes, isFollowingRes] = await Promise.all([
         supabase
           .from("posts")
-          .select("id, user_id, image, title, price, currency, type, created_at")
+          .select("id, user_id, media_url, title, description, price, created_at")
           .eq("user_id", targetProfile.id)
           .order("created_at", { ascending: false }),
         supabase
-          .from("follows")
+          .from("followers")
           .select("*", { count: "exact", head: true })
           .eq("following_id", targetProfile.id),
         supabase
-          .from("follows")
+          .from("followers")
           .select("*", { count: "exact", head: true })
           .eq("follower_id", targetProfile.id),
         authedUserId && authedUserId !== targetProfile.id
           ? supabase
-              .from("follows")
+              .from("followers")
               .select("follower_id", { count: "exact", head: true })
               .eq("follower_id", authedUserId)
               .eq("following_id", targetProfile.id)
@@ -216,7 +210,7 @@ const UserProfile = () => {
 
     if (next) {
       const { error } = await supabase
-        .from("follows")
+        .from("followers")
         .insert({ follower_id: authedUserId, following_id: profile.id });
       if (error) {
         setIsFollowing(false);
@@ -225,7 +219,7 @@ const UserProfile = () => {
       }
     } else {
       const { error } = await supabase
-        .from("follows")
+        .from("followers")
         .delete()
         .eq("follower_id", authedUserId)
         .eq("following_id", profile.id);
@@ -254,11 +248,12 @@ const UserProfile = () => {
   }
 
   const isSelf = authedUserId === profile.id;
-  const displayName = profile.display_name || profile.username || "Shopitt user";
   const username = profile.username || "shopper";
-  const location = profile.location || "—";
+  const displayName = profile.username || "Shopitt user";
+  const location = profile.country || "—";
 
-  const shorts = posts.filter((p) => (p.type ?? "").toLowerCase() === "short");
+  // No 'type' column on posts — Shorts tab stays empty until schema supports it
+  const shorts: PostRow[] = [];
   const tabItems = tab === "posts" ? posts : tab === "shorts" ? shorts : [];
 
   return (
@@ -324,11 +319,6 @@ const UserProfile = () => {
               <MapPin className="h-3.5 w-3.5 text-brand-pink" />
               <span>{location}</span>
             </div>
-            {profile.bio && (
-              <p className="mt-2 text-sm text-foreground/85 leading-snug whitespace-pre-line">
-                {profile.bio}
-              </p>
-            )}
           </div>
 
           <div className="mt-4 flex items-center gap-2">
@@ -414,8 +404,8 @@ const UserProfile = () => {
                   to={`/p/${p.id}`}
                   className="relative aspect-square overflow-hidden bg-muted active:opacity-80 transition-opacity"
                 >
-                  {p.image && (
-                    <img src={p.image} alt={p.title ?? ""} loading="lazy" className="h-full w-full object-cover" />
+                  {p.media_url && (
+                    <img src={p.media_url} alt={p.title ?? ""} loading="lazy" className="h-full w-full object-cover" />
                   )}
                   {tab === "shorts" && (
                     <span className="absolute top-1.5 right-1.5">
@@ -424,7 +414,6 @@ const UserProfile = () => {
                   )}
                   {p.price != null && (
                     <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
-                      {p.currency ?? ""}
                       {p.price}
                     </span>
                   )}
