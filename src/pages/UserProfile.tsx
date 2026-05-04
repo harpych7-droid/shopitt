@@ -36,7 +36,6 @@ type PostRow = {
   user_id: string;
   media_url: string | null;
   title: string | null;
-  description: string | null;
   price: number | null;
   created_at: string;
 };
@@ -146,7 +145,7 @@ const UserProfile = () => {
       const [postsRes, followersRes, followingRes, isFollowingRes] = await Promise.all([
         supabase
           .from("posts")
-          .select("id, user_id, media_url, title, description, price, created_at")
+          .select("id, user_id, media_url, title, price, created_at")
           .eq("user_id", targetProfile.id)
           .order("created_at", { ascending: false }),
         supabase
