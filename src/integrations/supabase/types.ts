@@ -14,7 +14,157 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      followers: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followers_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          created_at: string
+          id: string
+          media_url: string | null
+          price: number | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_url?: string | null
+          price?: number | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_url?: string | null
+          price?: number | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_system: boolean
+          price_usd: number
+          seller_id: string
+          source: string
+          source_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_system?: boolean
+          price_usd?: number
+          seller_id: string
+          source?: string
+          source_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_system?: boolean
+          price_usd?: number
+          seller_id?: string
+          source?: string
+          source_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_system: boolean
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string
+          id: string
+          is_system?: boolean
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
