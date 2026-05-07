@@ -6,10 +6,23 @@ import { FloatingBag } from "@/components/feed/FloatingBag";
 import { AuthModal } from "@/components/feed/AuthModal";
 import { BagSheet } from "@/components/feed/BagSheet";
 import { BottomNav } from "@/components/feed/BottomNav";
-import { FEED, CATEGORY_MAP } from "@/data/feed";
+import { FEED, CATEGORY_MAP, type FeedItem } from "@/data/feed";
 import { shopitt } from "@/store/useShopittStore";
 
+const PAGE_SIZE = 6;
+
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 const Index = () => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScroll = useRef(0);
   const [navHidden, setNavHidden] = useState(false);
@@ -18,12 +31,33 @@ const Index = () => {
   const [authAction, setAuthAction] = useState<"like" | "save" | "buy" | "comment" | null>(null);
   const [bagOpen, setBagOpen] = useState(false);
 
-  const items = useMemo(() => {
+  const baseItems = useMemo(() => {
     const allowed = CATEGORY_MAP[category];
     if (!allowed) return FEED;
     return FEED.filter((f) => allowed.includes(f.category));
   }, [category]);
 
+  const items = useMemo<FeedItem[]>(() => {
+    if (baseItems.length === 0) return [];
+    const out: FeedItem[] = [];
+    for (let p = 0; p < page; p++) {
+      const round = p === 0 ? baseItems : shuffle(baseItems);
+      round.forEach((it, idx) =>
+        out.push({ ...it, id: `${it.id}__${p}_${idx}` })
+      );
+      if (out.length >= page * PAGE_SIZE) break;
+    }
+    return out;
+  }, [baseItems, page]);
+
+  // Reset paging on category change
+  useEffect(() => {
+    setPage(1);
+    const el = scrollRef.current;
+    if (el) el.scrollTo({ top: 0, behavior: "auto" });
+  }, [category]);
+
+  // Hide nav on scroll-down
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -39,9 +73,20 @@ const Index = () => {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Infinite scroll via IntersectionObserver
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [category]);
+    const sentinel = sentinelRef.current;
+    const root = scrollRef.current;
+    if (!sentinel || !root) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setPage((p) => p + 1);
+      },
+      { root, rootMargin: "800px 0px", threshold: 0 }
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, [baseItems.length]);
 
   useEffect(() => {
     document.title = "Shopitt — Shop Drops You Crave";
@@ -93,6 +138,15 @@ const Index = () => {
           {items.length === 0 && (
             <div className="py-20 text-center text-muted-foreground text-sm">
               No drops in this category yet.
+            </div>
+          )}
+          {items.length > 0 && (
+            <div ref={sentinelRef} className="flex items-center justify-center py-10">
+              <div className="flex gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-brand-pink animate-pulse-soft" />
+                <span className="h-2 w-2 rounded-full bg-brand-purple animate-pulse-soft [animation-delay:120ms]" />
+                <span className="h-2 w-2 rounded-full bg-brand-pink animate-pulse-soft [animation-delay:240ms]" />
+              </div>
             </div>
           )}
         </div>
