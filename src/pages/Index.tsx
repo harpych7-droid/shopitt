@@ -6,10 +6,23 @@ import { FloatingBag } from "@/components/feed/FloatingBag";
 import { AuthModal } from "@/components/feed/AuthModal";
 import { BagSheet } from "@/components/feed/BagSheet";
 import { BottomNav } from "@/components/feed/BottomNav";
-import { FEED, CATEGORY_MAP } from "@/data/feed";
+import { FEED, CATEGORY_MAP, type FeedItem } from "@/data/feed";
 import { shopitt } from "@/store/useShopittStore";
 
+const PAGE_SIZE = 6;
+
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 const Index = () => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScroll = useRef(0);
   const [navHidden, setNavHidden] = useState(false);
