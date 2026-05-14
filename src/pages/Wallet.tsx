@@ -110,7 +110,7 @@ const Wallet = () => {
                     t.type === "in" ? "text-success" : "text-warning"
                   }`}
                 >
-                  {t.type === "in" ? "+" : "−"}${t.amount}
+                  {t.type === "in" ? "+" : "−"}ZMW {t.amount}
                 </span>
               </li>
             ))}
