@@ -100,7 +100,7 @@ const SellerDashboard = () => {
 
         {/* Stats grid */}
         <section className="grid grid-cols-2 gap-3">
-          <StatCard icon={DollarSign} label="Total sales" value={`$ZMW {stats.sales.toLocaleString()}`} delta={`+${stats.growth}%`} />
+          <StatCard icon={DollarSign} label="Total sales" value={`ZMW ${stats.sales.toLocaleString()}`} delta={`+${stats.growth}%`} />
           <StatCard icon={Package} label="Pending orders" value={stats.orders.toString()} delta={stats.orders ? "Action needed" : "All clear"} />
           <StatCard icon={Boxes} label="Listed" value={stats.listed.toString()} delta="Live now" />
           <StatCard icon={TrendingUp} label="Growth" value={`${stats.growth}%`} delta="vs last week" />
