@@ -88,7 +88,7 @@ const SellerDashboard = () => {
             <div>
               <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-white/80">Wallet balance</p>
               <p className="mt-1 text-3xl font-black text-white tracking-tight tabular-nums">
-                ${stats.sales.toLocaleString()}.00
+                ZMW {stats.sales.toLocaleString()}.00
               </p>
             </div>
             <button className="rounded-full bg-white text-foreground px-4 py-2 text-xs font-extrabold flex items-center gap-1.5 active:scale-95 transition-transform">
@@ -100,7 +100,7 @@ const SellerDashboard = () => {
 
         {/* Stats grid */}
         <section className="grid grid-cols-2 gap-3">
-          <StatCard icon={DollarSign} label="Total sales" value={`$${stats.sales.toLocaleString()}`} delta={`+${stats.growth}%`} />
+          <StatCard icon={DollarSign} label="Total sales" value={`ZMW ${stats.sales.toLocaleString()}`} delta={`+${stats.growth}%`} />
           <StatCard icon={Package} label="Pending orders" value={stats.orders.toString()} delta={stats.orders ? "Action needed" : "All clear"} />
           <StatCard icon={Boxes} label="Listed" value={stats.listed.toString()} delta="Live now" />
           <StatCard icon={TrendingUp} label="Growth" value={`${stats.growth}%`} delta="vs last week" />
@@ -111,7 +111,7 @@ const SellerDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Revenue</p>
-              <p className="mt-1 text-xl font-extrabold tracking-tight">${stats.sales.toLocaleString()}</p>
+              <p className="mt-1 text-xl font-extrabold tracking-tight">ZMW {stats.sales.toLocaleString()}</p>
             </div>
             <div className="flex gap-1.5 text-[11px] font-bold">
               {["7D", "1M", "3M", "1Y"].map((p, i) => (
