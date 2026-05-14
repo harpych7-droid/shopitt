@@ -27,7 +27,7 @@ const SellerDashboard = () => {
   // Showcase data (production would pull from API)
   const products = hasProducts ? FEED.slice(0, 4) : [];
   const stats = hasProducts
-    ? { sales: 12480, orders: 7, listed: products.length, growth: 18 }
+    ? { sales: 336960, orders: 7, listed: products.length, growth: 18 }
     : { sales: 0, orders: 0, listed: 0, growth: 0 };
 
   useEffect(() => {
