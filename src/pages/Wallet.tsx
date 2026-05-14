@@ -48,15 +48,15 @@ const Wallet = () => {
           <div className="absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
           <div className="relative">
             <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-white/85">Total balance</p>
-            <p className="mt-1 text-4xl font-black text-white tabular-nums tracking-tight">$2,481.50</p>
+            <p className="mt-1 text-4xl font-black text-white tabular-nums tracking-tight">ZMW 2,481.50</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-white/15 backdrop-blur p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-white/80">Pending</p>
-                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">$348.00</p>
+                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 348.00</p>
               </div>
               <div className="rounded-2xl bg-white/15 backdrop-blur p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-white/80">Available</p>
-                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">$2,133.50</p>
+                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 2,133.50</p>
               </div>
             </div>
           </div>
