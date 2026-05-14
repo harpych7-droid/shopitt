@@ -12,11 +12,11 @@ import {
 import { BottomNav } from "@/components/feed/BottomNav";
 
 const TRANSACTIONS = [
-  { id: "tx1", title: "Sale — Oversized Cashmere Knit", amount: 189, type: "in" as const, time: "Today · 09:42" },
-  { id: "tx2", title: "Withdrawal to Bank ****4421", amount: 320, type: "out" as const, time: "Yesterday · 18:10" },
-  { id: "tx3", title: "Sale — AirGlide 2", amount: 145, type: "in" as const, time: "2 days ago · 11:28" },
-  { id: "tx4", title: "Refund — Glow Serum", amount: 48, type: "out" as const, time: "3 days ago · 14:02" },
-  { id: "tx5", title: "Sale — Halo Pro ANC", amount: 279, type: "in" as const, time: "5 days ago · 20:55" },
+  { id: "tx1", title: "Sale — Oversized Cashmere Knit", amount: 5103, type: "in" as const, time: "Today · 09:42" },
+  { id: "tx2", title: "Withdrawal to Bank ****4421", amount: 8640, type: "out" as const, time: "Yesterday · 18:10" },
+  { id: "tx3", title: "Sale — AirGlide 2", amount: 3915, type: "in" as const, time: "2 days ago · 11:28" },
+  { id: "tx4", title: "Refund — Glow Serum", amount: 1296, type: "out" as const, time: "3 days ago · 14:02" },
+  { id: "tx5", title: "Sale — Halo Pro ANC", amount: 7533, type: "in" as const, time: "5 days ago · 20:55" },
 ];
 
 const Wallet = () => {
@@ -48,15 +48,15 @@ const Wallet = () => {
           <div className="absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
           <div className="relative">
             <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-white/85">Total balance</p>
-            <p className="mt-1 text-4xl font-black text-white tabular-nums tracking-tight">ZMW 2,481.50</p>
+            <p className="mt-1 text-4xl font-black text-white tabular-nums tracking-tight">ZMW 67,001</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-white/15 backdrop-blur p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-white/80">Pending</p>
-                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 348.00</p>
+                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 9,396</p>
               </div>
               <div className="rounded-2xl bg-white/15 backdrop-blur p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-white/80">Available</p>
-                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 2,133.50</p>
+                <p className="mt-0.5 text-lg font-extrabold text-white tabular-nums">ZMW 57,605</p>
               </div>
             </div>
           </div>
